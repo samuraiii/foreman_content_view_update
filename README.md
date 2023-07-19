@@ -1,0 +1,1 @@
+# foreman_content_view_update
