@@ -201,25 +201,26 @@ def delete_content_view_versions(content_view_id: str, content_view_name: str) -
         f'/katello/api/content_views/{content_view_id}/content_view_versions')
     delete_content_view_version: bool = False
     versions_to_keep: int = 3
-    log(f"Deleting {len(content_view_versions['results']) - versions_to_keep} "\
-        f"obsolete versions of content view '{content_view_name}'.")
-    for content_view_version in content_view_versions['results']:
-        if delete_content_view_version:
-            if len(content_view_version['environments']) == 0:
-                check_continue()
-                noop(make_request(
-                    f"/katello/api/content_view_versions/{content_view_version['id']}", \
-                        request_type='delete'))
+    if len(content_view_versions['results']) - versions_to_keep > 0:
+        log(f"Deleting {len(content_view_versions['results']) - versions_to_keep} "\
+            f"obsolete versions of content view '{content_view_name}'.")
+        for content_view_version in content_view_versions['results']:
+            if delete_content_view_version:
+                if len(content_view_version['environments']) == 0:
+                    check_continue()
+                    noop(make_request(
+                        f"/katello/api/content_view_versions/{content_view_version['id']}", \
+                            request_type='delete'))
+                else:
+                    log(f"Cannot delete the content view version '{content_view_name}' " \
+                        f"'{content_view_version['version']}' (id:{content_view_version['id']})! " \
+                        "Because it is part of the lifecycle environment.")
             else:
-                log(f"Cannot delete the content view version '{content_view_name}' " \
-                    f"'{content_view_version['version']}' (id:{content_view_version['id']})! " \
-                    "Because it is part of the lifecycle environment.")
-        else:
-            # skip latest versions_to_keep versions
-            if versions_to_keep < 2:
-                delete_content_view_version = True
-            else:
-                versions_to_keep = versions_to_keep - 1
+                # skip latest versions_to_keep versions
+                if versions_to_keep < 2:
+                    delete_content_view_version = True
+                else:
+                    versions_to_keep = versions_to_keep - 1
 
 
 
